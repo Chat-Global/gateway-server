@@ -116,5 +116,5 @@ io.use(async (socket: any, next: any): Promise<void> => {
 });
 
 server.listen(3000, (): void => {
-    console.log('listening on *:3000');
+    console.log('Listening on *:3000');
 });
