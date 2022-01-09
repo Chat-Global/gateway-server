@@ -1,8 +1,12 @@
 const express = require('express');
 const axios = require('axios').default;
 const { createServer } = require('http');
+const makeCappedMap = require('capped_map');
 const { simpleflake } = require('simpleflakes');
 const { Server: IOServer } = require('socket.io');
+const assert = require('assert')
+
+const messageCache = new Map();
 
 const app = express();
 const server = createServer(app);
@@ -169,7 +173,9 @@ io.use(async (socket: any, next: any): Promise<void> => {
     
     const isUniqueConnection = usersInstances.filter(({ id }) => id === socket.user.id).length === 1;
     
-    socket.emit('MESSAGES_LIST', []);
+    if (!messageCache.has(socket.interchat.id)) messageCache.set(socket.interchat.id, makeCappedMap(new Map(), 50));
+
+    socket.emit('MESSAGES_LIST', Array.from(messageCache.get(socket.interchat.id).values()));
 
     socket.emit('MEMBERS_LIST', users);
     
@@ -188,7 +194,9 @@ io.use(async (socket: any, next: any): Promise<void> => {
     });
     
     socket.on('MESSAGE_CREATE', (msg: MessageInterface): void => {
-        io.to(socket.interchat.id).emit('MESSAGE_CREATE', new Message(socket.user, msg));
+        const message = new Message(socket.user, msg);
+        io.to(socket.interchat.id).emit('MESSAGE_CREATE', message);
+        messageCache.get(socket.interchat.id).set(message.id, message);
     });
 });
 
