@@ -12,6 +12,7 @@
   "dependencies": {
     "axios": "^0.24.0",
     "express": "^4.17.2",
+    "simpleflakes": "^2.2.2",
     "socket.io": "^4.4.0"
   }
 }
